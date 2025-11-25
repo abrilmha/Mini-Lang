@@ -1,4 +1,3 @@
-# tac_interpreter.py (VERSIÓN FINAL)
 class TACInterpreter:
     def __init__(self):
         self.memory = {}
