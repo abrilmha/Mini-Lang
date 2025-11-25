@@ -1,4 +1,4 @@
-# AnalizadorLexico.py (VERSIÓN CORREGIDA)
+# AnalizadorLexico.py 
 import re
 
 # Diccionarios de tokens del lenguaje
@@ -103,3 +103,4 @@ def obtener_tokens(codigo_fuente):
             pos += len(token)
 
     return tokens_encontrados
+
