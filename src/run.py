@@ -5,7 +5,7 @@ from CodeGen import CodeGenerator
 from tac_interpreter import TACInterpreter
 
 def run_file(path):
-    # Load program
+
     try:
         with open(path, "r", encoding="utf-8") as f:
             code = f.read()
@@ -26,21 +26,21 @@ def run_file(path):
         sem_analyzer = SemanticAnalyzer()
         sem_errors = sem_analyzer.analyze(ast)
         
-        # ✅ DETENER COMPILACIÓN SI HAY ERRORES SEMÁNTICOS
+       
         if sem_errors:
             print("❌ SEMANTIC ERRORS FOUND - COMPILATION STOPPED:")
             for error in sem_errors:
                 print(f"   ⚠ {error}")
             print(f"\nCompilation failed with {len(sem_errors)} error(s)")
-            return 1  # ✅ Código de error
+            return 1  
 
-        # 4. TAC generation (solo si no hay errores semánticos)
+        # 4. TAC generation 
         tac = CodeGenerator().generate(ast)
         print("\n--- Generated TAC ---")
         for i, instr in enumerate(tac, 1):
             print(f"{i:03}:", instr)
 
-        # 5. Execution (solo si no hay errores semánticos)
+        # 5. Execution 
         print("\n--- Program Output ---")
         interpreter = TACInterpreter()
         output = interpreter.execute(tac)
