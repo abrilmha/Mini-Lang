@@ -1,4 +1,4 @@
-# CompiladorFinal.py (VERSIÓN CON VALIDACIÓN SEMÁNTICA COMPLETA)
+# Compilador.py 
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, filedialog, ttk
 from AnalizadorLexico import obtener_tokens
@@ -8,14 +8,14 @@ from tac_interpreter import TACInterpreter
 
 class CompilerInterface:
     def __init__(self):
-        self.ventana = tk.Tk()
-        self.ventana.title(" Compilador Mini Lenguaje ")
-        self.ventana.geometry("1000x820")
-        self.ventana.configure(bg="#F9E7EC")
+        self.window = tk.Tk()
+        self.window.title(" Mini-Language Compiler ")
+        self.window.geometry("1000x820")
+        self.window.configure(bg="#F9E7EC")
 
         self.setup_styles()
-        self.ultimo_programa = None
-        self.ultimo_tac = None
+        self.last_program = None
+        self.last_tac = None
         self.setup_ui()
     
     def setup_styles(self):
@@ -30,29 +30,29 @@ class CompilerInterface:
 
     def setup_ui(self):
         # HEADER
-        header = tk.Frame(self.ventana, bg="#F7CBD8", height=95, bd=0)
+        header = tk.Frame(self.window, bg="#F7CBD8", height=95, bd=0)
         header.pack(fill="x", padx=22, pady=18)
         header.pack_propagate(False)
 
         tk.Label(header, 
-                 text="Compilador Mini Lenguaje",
+                 text="Mini-Language Compiler",
                  bg="#F7CBD8",
                  fg="#7A2E4D",
                  font=("Helvetica", 20, "bold")).pack(pady=10)
 
         tk.Label(header,
-                 text="Léxico • Sintáctico • Semántico • TAC",
+                 text="Lexical • Syntactic • Semantic • TAC",
                  bg="#F7CBD8",
                  fg="#7A2E4D",
                  font=("Helvetica", 12)).pack()
 
-        # CÓDIGO FUENTE
-        tk.Label(self.ventana, text="Código Fuente:",
+        # SOURCE CODE
+        tk.Label(self.window, text="Source Code:",
                  bg="#F9E7EC", fg="#B65075",
                  font=("Helvetica", 12, "bold")).pack(pady=(5, 2))
 
-        self.entrada = scrolledtext.ScrolledText(
-            self.ventana,
+        self.input_area = scrolledtext.ScrolledText(
+            self.window,
             width=110, height=10,
             font=("Consolas", 11),
             bg="#FFFFFF",
@@ -62,34 +62,26 @@ class CompilerInterface:
             padx=12,
             pady=12
         )
-        self.entrada.pack(padx=20, pady=8)
+        self.input_area.pack(padx=20, pady=8)
 
-        # Código de ejemplo
-        codigo_ejemplo = """print("Hola mundo!");
-var x = 10;
-if (x > 5) {
-    print("x es mayor que 5");
-}"""
-        self.entrada.insert("1.0", codigo_ejemplo)
+        # BUTTONS
+        buttons_frame = tk.Frame(self.window, bg="#F9E7EC")
+        buttons_frame.pack(pady=10)
 
-        # BOTONES
-        botones_frame = tk.Frame(self.ventana, bg="#F9E7EC")
-        botones_frame.pack(pady=10)
-
-        botones_info = [
-            ("🔤 Léxico", "#F4B6CC", self.analizar_lexico),
-            ("🌳 Sintáctico", "#F4A2C3", self.analizar_sintactico),
-            ("📊 Semántico", "#EF8AB7", self.analizar_semantico),
-            ("⚡ TAC", "#DD79A7", self.compilar_tac),
-            ("▶ Ejecutar", "#C86696", self.ejecutar_tac),
-            ("🚀 Todo", "#B75586", self.compilar_ejecutar_todo),
-            ("🧹 Limpiar", "#A64575", self.limpiar),
+        buttons_info = [
+            ("LEXER", "#F4B6CC", self.analizar_lexico),
+            ("SYNTACTIC", "#F4A2C3", self.analizar_sintactico),
+            ("SEMANTIC", "#EF8AB7", self.analizar_semantico),
+            ("TAC", "#DD79A7", self.compilar_tac),
+            ("▶ RUN", "#C86696", self.ejecutar_tac),
+            ("ALL", "#B75586", self.compilar_ejecutar_todo),
+            ("🧹 CLEAN", "#A64575", self.limpiar),
         ]
 
-        for i, (texto, color, comando) in enumerate(botones_info):
+        for i, (text, color, command) in enumerate(buttons_info):
             btn = tk.Button(
-                botones_frame,
-                text=texto,
+                buttons_frame,
+                text=text,
                 bg=color,
                 fg="white",
                 font=("Helvetica", 10, "bold"),
@@ -100,34 +92,34 @@ if (x > 5) {
                 height=2,
                 bd=0,
                 highlightthickness=0,
-                command=comando
+                command=command
             )
             btn.grid(row=0, column=i, padx=6, pady=6)
 
         # NOTEBOOK
-        self.notebook = ttk.Notebook(self.ventana)
+        self.notebook = ttk.Notebook(self.window)
         self.notebook.pack(fill="both", expand=True, padx=20, pady=15)
 
-        self.salida = self.create_tab("📝 Análisis General")
-        self.tokens_area = self.create_tab("🔤 Tokens")
+        self.output_area = self.create_tab("General Analysis")
+        self.tokens_area = self.create_tab("Tokens")
         self.tac_area = self.create_tab("⚡ TAC")
-        self.resultados_area = self.create_tab("📊 Resultados")
+        self.results_area = self.create_tab("Results")
 
         self.setup_text_tags()
 
-        # ESTADO
-        self.estado = tk.Label(
-            self.ventana,
-            text="Listo para compilar…",
+        # STATUS
+        self.status = tk.Label(
+            self.window,
+            text="Ready to compile…",
             bg="#F9E7EC",
             fg="#B65075",
             font=("Helvetica", 11, "italic")
         )
-        self.estado.pack(pady=3)
+        self.status.pack(pady=3)
 
-    def create_tab(self, titulo):
+    def create_tab(self, title):
         frame = ttk.Frame(self.notebook, style="Card.TFrame")
-        self.notebook.add(frame, text=titulo)
+        self.notebook.add(frame, text=title)
 
         area = scrolledtext.ScrolledText(
             frame,
@@ -142,257 +134,257 @@ if (x > 5) {
         return area
 
     def setup_text_tags(self):
-        for area in [self.salida, self.tokens_area, self.tac_area, self.resultados_area]:
+        for area in [self.output_area, self.tokens_area, self.tac_area, self.results_area]:
             area.tag_config("error", foreground="#D7263D", font=("Consolas", 10, "bold"))
             area.tag_config("success", foreground="#3FAE49", font=("Consolas", 10, "bold"))
             area.tag_config("warning", foreground="#E8A628", font=("Consolas", 10, "bold"))
             area.tag_config("info", foreground="#5A78D1", font=("Consolas", 10))
-            area.tag_config("titulo", foreground="#B65075", font=("Consolas", 11, "bold"))
+            area.tag_config("title", foreground="#B65075", font=("Consolas", 11, "bold"))
             area.tag_config("token", foreground="#874562")
             area.tag_config("value", foreground="#406B8E")
 
-    # ------------------ FUNCIONES DE LOS BOTONES ------------------
+    # ------------------ BUTTON FUNCTIONS ------------------
     
-    def get_codigo(self):
-        return self.entrada.get("1.0", tk.END).strip()
+    def get_code(self):
+        return self.input_area.get("1.0", tk.END).strip()
 
     def limpiar(self):
-        self.entrada.delete("1.0", tk.END)
-        self.salida.delete("1.0", tk.END)
+        self.input_area.delete("1.0", tk.END)
+        self.output_area.delete("1.0", tk.END)
         self.tokens_area.delete("1.0", tk.END)
         self.tac_area.delete("1.0", tk.END)
-        self.resultados_area.delete("1.0", tk.END)
-        self.ultimo_programa = None
-        self.ultimo_tac = None
-        self.estado.config(text="Listo para nuevo código ✨")
+        self.results_area.delete("1.0", tk.END)
+        self.last_program = None
+        self.last_tac = None
+        self.status.config(text="Ready for new code")
 
     def analizar_lexico(self):
-        codigo = self.get_codigo()
-        if not codigo:
-            messagebox.showwarning("Advertencia", "Escribe código fuente.")
+        code = self.get_code()
+        if not code:
+            messagebox.showwarning("Warning", "Write source code.")
             return
 
         self.tokens_area.delete("1.0", tk.END)
 
         try:
-            tokens = obtener_tokens(codigo)
-            self.tokens_area.insert(tk.END, " TOKENS ENCONTRADOS\n\n", "titulo")
+            tokens = obtener_tokens(code)
+            self.tokens_area.insert(tk.END, " FOUND TOKENS\n\n", "title")
 
             for token in tokens:
                 tipo, valor, linea, columna = token
-                self.tokens_area.insert(tk.END, f"Línea {linea}:{columna}\n", "info")
-                self.tokens_area.insert(tk.END, f"  Tipo: ", "info")
+                self.tokens_area.insert(tk.END, f"Line {linea}:{columna}\n", "info")
+                self.tokens_area.insert(tk.END, f"  Type: ", "info")
                 self.tokens_area.insert(tk.END, f"{tipo}\n", "token")
-                self.tokens_area.insert(tk.END, f"  Valor: '{valor}'\n\n", "value")
+                self.tokens_area.insert(tk.END, f"  Value: '{valor}'\n\n", "value")
 
-            self.estado.config(text="Análisis léxico completado ✔")
+            self.status.config(text="LEXICAL ANALYSIS COMPLETE ✔")
 
         except Exception as e:
             self.tokens_area.insert(tk.END, f"❌ Error: {e}\n", "error")
-            self.estado.config(text="Error léxico ❌")
+            self.status.config(text="LEXICAL ERROR ❌")
 
     def analizar_sintactico(self):
-        codigo = self.get_codigo()
-        if not codigo:
-            messagebox.showwarning("Advertencia", "Escribe código.")
+        code = self.get_code()
+        if not code:
+            messagebox.showwarning("Warning", "Write source code.")
             return
 
-        self.salida.delete("1.0", tk.END)
+        self.output_area.delete("1.0", tk.END)
 
         try:
-            tokens_tuplas = obtener_tokens(codigo)
-            tokens = [Token(t[0], t[1], t[2], t[3]) for t in tokens_tuplas]
+            tokens_tuples = obtener_tokens(code)
+            tokens = [Token(t[0], t[1], t[2], t[3]) for t in tokens_tuples]
 
             parser = Parser(tokens)
             program = parser.parse()
-            self.ultimo_programa = program
+            self.last_program = program
 
-            self.salida.insert(tk.END, "✅ ANÁLISIS SINTÁCTICO EXITOSO\n\n", "success")
-            self.salida.insert(tk.END, "ÁRBOL SINTÁCTICO:\n", "titulo")
-            self.salida.insert(tk.END, ast_to_str(program))
+            self.output_area.insert(tk.END, "SUCCESSFUL SYNTACTIC ANALYSIS\n\n", "success")
+            self.output_area.insert(tk.END, "SYNTACTIC TREE:\n", "title")
+            self.output_area.insert(tk.END, ast_to_str(program))
 
-            self.estado.config(text="Análisis sintáctico ✔")
+            self.status.config(text="Syntactic analysis completed ✔")
 
         except Exception as e:
-            self.salida.insert(tk.END, f"❌ Error: {e}\n", "error")
-            self.estado.config(text="Error sintáctico ❌")
+            self.output_area.insert(tk.END, f"❌ Error: {e}\n", "error")
+            self.status.config(text="Syntactic error ❌")
 
     def analizar_semantico(self):
-        if self.ultimo_programa is None:
-            messagebox.showwarning("Advertencia", "Primero análisis sintáctico.")
+        if self.last_program is None:
+            messagebox.showwarning("Warning", "Syntactic analysis first.")
             return
 
-        self.salida.insert(tk.END, "\n" + "="*50 + "\n", "info")
-        self.salida.insert(tk.END, "ANÁLISIS SEMÁNTICO\n", "titulo")
+        self.output_area.insert(tk.END, "\n" + "="*50 + "\n", "info")
+        self.output_area.insert(tk.END, "SEMANTIC ANALYSIS\n", "title")
 
         try:
             sem = SemanticAnalyzer()
-            errores = sem.analyze(self.ultimo_programa)
+            errors = sem.analyze(self.last_program)
 
-            if errores:
-                for error in errores:
-                    self.salida.insert(tk.END, f"⚠ {error}\n", "warning")
-                self.salida.insert(tk.END, f"\n❌ Se encontraron {len(errores)} error(es) semántico(s)\n", "error")
+            if errors:
+                for error in errors:
+                    self.output_area.insert(tk.END, f"⚠ {error}\n", "warning")
+                self.output_area.insert(tk.END, f"\n❌ Found {len(errors)} semantic error(s)\n", "error")
             else:
-                self.salida.insert(tk.END, "✅ Sin errores semánticos\n", "success")
+                self.output_area.insert(tk.END, "✅ No semantic errors\n", "success")
 
-            self.estado.config(text="Análisis semántico completado ✔")
+            self.status.config(text="Semantic analysis completed ✔")
 
         except Exception as e:
-            self.salida.insert(tk.END, f"❌ Error: {e}\n", "error")
-            self.estado.config(text="Error en análisis semántico ❌")
+            self.output_area.insert(tk.END, f"❌ Error: {e}\n", "error")
+            self.status.config(text="Semantic analysis error ❌")
 
     def compilar_tac(self):
-        if self.ultimo_programa is None:
-            messagebox.showwarning("Advertencia", "Primero análisis sintáctico.")
+        if self.last_program is None:
+            messagebox.showwarning("Warning", "Syntactic analysis first.")
             return
 
-        # Verificar errores semánticos antes de generar TAC
+        # Check semantic errors before generating TAC
         sem = SemanticAnalyzer()
-        errores = sem.analyze(self.ultimo_programa)
+        errors = sem.analyze(self.last_program)
         
-        if errores:
+        if errors:
             self.tac_area.delete("1.0", tk.END)
-            self.tac_area.insert(tk.END, "❌ NO SE PUEDE GENERAR TAC - ERRORES SEMÁNTICOS:\n\n", "error")
-            for error in errores:
+            self.tac_area.insert(tk.END, "❌ CANNOT GENERATE TAC - SEMANTIC ERRORS:\n\n", "error")
+            for error in errors:
                 self.tac_area.insert(tk.END, f"⚠ {error}\n", "warning")
-            self.estado.config(text="Generación TAC bloqueada por errores semánticos ❌")
+            self.status.config(text="TAC generation blocked by semantic errors ❌")
             return
 
         self.tac_area.delete("1.0", tk.END)
 
         try:
             generator = CodeGenerator()
-            tac_code = generator.generate(self.ultimo_programa)
-            self.ultimo_tac = tac_code
+            tac_code = generator.generate(self.last_program)
+            self.last_tac = tac_code
 
-            self.tac_area.insert(tk.END, "✅ CÓDIGO TAC GENERADO\n\n", "titulo")
+            self.tac_area.insert(tk.END, "✅ TAC CODE GENERATED\n\n", "title")
             for i, instruction in enumerate(tac_code, 1):
                 self.tac_area.insert(tk.END, f"{i:3}: {instruction}\n")
 
-            self.estado.config(text="TAC generado ✔")
+            self.status.config(text="TAC generated ✔")
 
         except Exception as e:
             self.tac_area.insert(tk.END, f"❌ Error: {e}\n", "error")
-            self.estado.config(text="Error generando TAC ❌")
+            self.status.config(text="Error generating TAC ❌")
 
     def ejecutar_tac(self):
-        if self.ultimo_programa is None:
-            messagebox.showwarning("Advertencia", "Primero análisis sintáctico.")
+        if self.last_program is None:
+            messagebox.showwarning("Warning", "Syntactic analysis first.")
             return
     
-        # Verificar errores semánticos antes de ejecutar
+        # Check semantic errors before execution
         sem = SemanticAnalyzer()
-        errores = sem.analyze(self.ultimo_programa)
+        errors = sem.analyze(self.last_program)
         
-        if errores:
-            self.resultados_area.delete("1.0", tk.END)
-            self.resultados_area.insert(tk.END, "❌ NO SE PUEDE EJECUTAR - ERRORES SEMÁNTICOS:\n\n", "error")
-            for error in errores:
-                self.resultados_area.insert(tk.END, f"⚠ {error}\n", "warning")
-            self.estado.config(text="Ejecución bloqueada por errores semánticos ❌")
+        if errors:
+            self.results_area.delete("1.0", tk.END)
+            self.results_area.insert(tk.END, "❌ CANNOT EXECUTE - SEMANTIC ERRORS:\n\n", "error")
+            for error in errors:
+                self.results_area.insert(tk.END, f"⚠ {error}\n", "warning")
+            self.status.config(text="Execution blocked by semantic errors ❌")
             return
 
-        if self.ultimo_tac is None:
-            messagebox.showwarning("Advertencia", "Primero genera el TAC.")
+        if self.last_tac is None:
+            messagebox.showwarning("Warning", "Generate TAC first.")
             return
 
-        self.resultados_area.delete("1.0", tk.END)
+        self.results_area.delete("1.0", tk.END)
 
         try:
             interpreter = TACInterpreter()
-            resultados = interpreter.execute(self.ultimo_tac)
+            results = interpreter.execute(self.last_tac)
 
-            self.resultados_area.insert(tk.END, "--- SALIDA DEL PROGRAMA ---\n", "titulo")
+            self.results_area.insert(tk.END, "--- PROGRAM OUTPUT ---\n", "title")
             
-            if resultados:
-                for r in resultados:
+            if results:
+                for r in results:
                     if r.startswith("Error:"):
-                        self.resultados_area.insert(tk.END, f"❌ {r}\n", "error")
+                        self.results_area.insert(tk.END, f"❌ {r}\n", "error")
                     else:
-                        self.resultados_area.insert(tk.END, f"{r}\n", "info")
+                        self.results_area.insert(tk.END, f"{r}\n", "info")
             else:
-                self.resultados_area.insert(tk.END, "✅ Programa ejecutado exitosamente (sin salida)\n", "success")
+                self.results_area.insert(tk.END, "✅ Program executed successfully (no output)\n", "success")
 
             if interpreter.had_execution_errors():
-                self.estado.config(text="Ejecución completada con errores ⚠")
+                self.status.config(text="Execution completed with errors ⚠")
             else:
-                self.estado.config(text="Programa ejecutado exitosamente ✅")
+                self.status.config(text="Program executed successfully ✅")
 
         except Exception as e:
-            self.resultados_area.insert(tk.END, f"❌ Error fatal: {e}\n", "error")
-            self.estado.config(text="Error en ejecución ❌")
+            self.results_area.insert(tk.END, f"❌ Fatal error: {e}\n", "error")
+            self.status.config(text="Execution error ❌")
 
     def compilar_ejecutar_todo(self):
-        self.estado.config(text="Compilando…")
+        self.status.config(text="Compiling…")
         
-        # Limpiar áreas primero
-        self.salida.delete("1.0", tk.END)
+        # Clear areas first
+        self.output_area.delete("1.0", tk.END)
         self.tac_area.delete("1.0", tk.END)
-        self.resultados_area.delete("1.0", tk.END)
+        self.results_area.delete("1.0", tk.END)
         
         try:
-            # 1. Análisis léxico y sintáctico
-            codigo = self.get_codigo()
-            if not codigo:
-                messagebox.showwarning("Advertencia", "Escribe código fuente.")
+            # 1. Lexical and syntactic analysis
+            code = self.get_code()
+            if not code:
+                messagebox.showwarning("Warning", "Write source code.")
                 return
                 
-            tokens_tuplas = obtener_tokens(codigo)
-            tokens = [Token(t[0], t[1], t[2], t[3]) for t in tokens_tuplas]
+            tokens_tuples = obtener_tokens(code)
+            tokens = [Token(t[0], t[1], t[2], t[3]) for t in tokens_tuples]
             
             parser = Parser(tokens)
             program = parser.parse()
-            self.ultimo_programa = program
+            self.last_program = program
             
-            self.salida.insert(tk.END, "✅ ANÁLISIS SINTÁCTICO EXITOSO\n\n", "success")
+            self.output_area.insert(tk.END, "✅ SUCCESSFUL SYNTACTIC ANALYSIS\n\n", "success")
             
-            # 2. Análisis semántico
+            # 2. Semantic analysis
             sem = SemanticAnalyzer()
-            errores = sem.analyze(program)
+            errors = sem.analyze(program)
             
-            if errores:
-                self.salida.insert(tk.END, "❌ ERRORES SEMÁNTICOS ENCONTRADOS:\n\n", "error")
-                for error in errores:
-                    self.salida.insert(tk.END, f"⚠ {error}\n", "warning")
+            if errors:
+                self.output_area.insert(tk.END, "❌ SEMANTIC ERRORS FOUND:\n\n", "error")
+                for error in errors:
+                    self.output_area.insert(tk.END, f"⚠ {error}\n", "warning")
                 
-                self.salida.insert(tk.END, f"\n🚫 COMPILACIÓN DETENIDA: {len(errores)} error(es) semántico(s)\n", "error")
-                self.estado.config(text="Compilación falló por errores semánticos ❌")
-                return  # ✅ DETENER aquí
+                self.output_area.insert(tk.END, f"\n🚫 COMPILATION HALTED: {len(errors)} semantic error(s)\n", "error")
+                self.status.config(text="Compilation failed due to semantic errors ❌")
+                return
             
-            self.salida.insert(tk.END, "✅ SIN ERRORES SEMÁNTICOS\n\n", "success")
+            self.output_area.insert(tk.END, "✅ NO SEMANTIC ERRORS\n\n", "success")
             
-            # 3. Generación TAC (solo si no hay errores)
+            # 3. TAC generation (only if no errors)
             generator = CodeGenerator()
             tac_code = generator.generate(program)
-            self.ultimo_tac = tac_code
+            self.last_tac = tac_code
             
-            self.tac_area.insert(tk.END, "✅ CÓDIGO TAC GENERADO\n\n", "titulo")
+            self.tac_area.insert(tk.END, "✅ TAC CODE GENERATED\n\n", "title")
             for i, instruction in enumerate(tac_code, 1):
                 self.tac_area.insert(tk.END, f"{i:3}: {instruction}\n")
             
-            # 4. Ejecución (solo si no hay errores)
-            self.resultados_area.insert(tk.END, "--- EJECUCIÓN ---\n", "titulo")
+            # 4. Execution (only if no errors)
+            self.results_area.insert(tk.END, "--- EXECUTION ---\n", "title")
             interpreter = TACInterpreter()
-            resultados = interpreter.execute(tac_code)
+            results = interpreter.execute(tac_code)
             
-            for r in resultados:
+            for r in results:
                 if r.startswith("Error:"):
-                    self.resultados_area.insert(tk.END, f"❌ {r}\n", "error")
+                    self.results_area.insert(tk.END, f"❌ {r}\n", "error")
                 else:
-                    self.resultados_area.insert(tk.END, f"{r}\n", "info")
+                    self.results_area.insert(tk.END, f"{r}\n", "info")
             
             if interpreter.had_execution_errors():
-                self.estado.config(text="Ejecución completada con errores ⚠")
+                self.status.config(text="Execution completed with errors ⚠")
             else:
-                self.estado.config(text="Compilación y ejecución completadas ✅")
+                self.status.config(text="Compilation and execution completed ✅")
             
         except Exception as e:
-            self.salida.insert(tk.END, f"❌ ERROR DE COMPILACIÓN: {e}\n", "error")
-            self.estado.config(text="Error en compilación ❌")
+            self.output_area.insert(tk.END, f"❌ COMPILATION ERROR: {e}\n", "error")
+            self.status.config(text="Compilation error ❌")
 
     def run(self):
-        self.ventana.mainloop()
+        self.window.mainloop()
 
 if __name__ == "__main__":
     compiler = CompilerInterface()
