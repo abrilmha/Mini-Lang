@@ -1,4 +1,3 @@
-# CodeGen.py 
 from SintacticoSemantico import *
 
 class CodeGenerator:
@@ -101,15 +100,14 @@ class CodeGenerator:
         self.tac_code.append(f"{end_label}:")
     
     def visit_PrintStmt(self, node):
-      
+        
         if isinstance(node.expr, Literal) and node.expr.value_type == 'string':
-            
+           
             self.tac_code.append(f'print {node.expr.value}')
         else:
-           
+            
             expr_temp = self.visit(node.expr)
             self.tac_code.append(f"print {expr_temp}")
     
     def visit_InputStmt(self, node):
         self.tac_code.append(f"input {node.name}")
-
