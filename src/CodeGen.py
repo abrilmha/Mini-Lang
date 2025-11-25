@@ -1,4 +1,4 @@
-# CodeGen.py (VERSIÓN MEJORADA - PRINTS SIN COMILLAS)
+# CodeGen.py 
 from SintacticoSemantico import *
 
 class CodeGenerator:
@@ -101,14 +101,15 @@ class CodeGenerator:
         self.tac_code.append(f"{end_label}:")
     
     def visit_PrintStmt(self, node):
-        # Para prints, manejamos diferente según el tipo
+      
         if isinstance(node.expr, Literal) and node.expr.value_type == 'string':
-            # Para strings literales, poner el valor sin comillas en el print
+            
             self.tac_code.append(f'print {node.expr.value}')
         else:
-            # Para variables o expresiones, generar normalmente
+           
             expr_temp = self.visit(node.expr)
             self.tac_code.append(f"print {expr_temp}")
     
     def visit_InputStmt(self, node):
         self.tac_code.append(f"input {node.name}")
+
