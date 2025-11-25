@@ -104,13 +104,9 @@ cd Mini-Lang
 
 Environment
 
-OS: Windows 10 / macOS / Linux
-
-Python: 3.11+
-
-No external dependencies
-
-Dataset / Inputs
+-OS: Windows 10 / macOS / Linux
+-Python: 3.11+
+-No external dependencies
 
 All test programs are located in:
 
