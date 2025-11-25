@@ -1,0 +1,14 @@
+var total = 0;
+var i = 1;
+while (i <= 10) {
+    total = total + i;
+    i = i + 1;
+}
+print("La suma de 1 a 10 es:");
+print(total);
+
+if (total > 50) {
+    print("Es mayor que 50");
+} else {
+    print("Es menor o igual a 50");
+}

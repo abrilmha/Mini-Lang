@@ -1,0 +1,8 @@
+var x = 10;
+var y = 5;
+var result1 = x > y;
+var result2 = x == y;
+var result3 = result1 != result2;
+print(result1);
+print(result2);
+print(result3);

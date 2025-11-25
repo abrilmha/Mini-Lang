@@ -1,0 +1,6 @@
+var score = 85;
+if (score > 80) {
+    print("Aprobado");
+} else {
+    print("Reprobado");
+}

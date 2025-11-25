@@ -1,0 +1,7 @@
+var name = "Juan";
+var age = 25;
+print("Hola");
+print(name);
+print("Tienes");
+print(age);
+print("años");

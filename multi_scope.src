@@ -1,0 +1,13 @@
+var global = 100;
+print(global);
+
+if (global > 50) {
+    var local = 200;
+    print("Inside the if we can access global:");
+    print(global);
+    print("Inside the if we can access local:");
+    print(local);
+}
+
+print("Outside the if we can still access global:");
+print(global);

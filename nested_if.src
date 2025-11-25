@@ -1,0 +1,11 @@
+var x = 10;
+var y = 20;
+if (x > 5) {
+    if (y > 15) {
+        print("Ambas condiciones son verdaderas");
+    } else {
+        print("Solo x es mayor");
+    }
+} else {
+    print("x es menor o igual a 5");
+}
