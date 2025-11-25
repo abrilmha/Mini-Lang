@@ -219,8 +219,27 @@ class Parser:
 
     # ----- Expresiones -----
     def parse_expr(self):
+        return self.parse_comparison()
+
+    def parse_comparison(self):
+        left = self.parse_addition()
+        while self.peek() and self.peek().type in ('LT','GT','LE','GE','EQ','NEQ'):
+            op = self.advance().type
+            right = self.parse_addition()
+            left = BinaryOp(op, left, right)
+        return left
+
+    def parse_addition(self):
+        left = self.parse_multiplication()
+        while self.peek() and self.peek().type in ('PLUS','MINUS'):
+            op = self.advance().type
+            right = self.parse_multiplication()
+            left = BinaryOp(op, left, right)
+        return left
+
+    def parse_multiplication(self):
         left = self.parse_term()
-        while self.peek() and self.peek().type in ('PLUS','MINUS','LT','GT','LE','GE','EQ','NEQ'):
+        while self.peek() and self.peek().type in ('MUL','DIV'):
             op = self.advance().type
             right = self.parse_term()
             left = BinaryOp(op, left, right)
@@ -230,27 +249,34 @@ class Parser:
         t = self.peek()
         if not t:
             raise ParserError("EOF en expresión")
+        
         if t.type == 'NUM':
             self.advance()
             return Literal(float(t.value) if '.' in t.value else int(t.value),
-                           'float' if '.' in t.value else 'int')
+                        'float' if '.' in t.value else 'int')
+        
         if t.type == 'TRUE':
             self.advance()
             return Literal(True, 'bool')
+        
         if t.type == 'FALSE':
             self.advance()
             return Literal(False, 'bool')
+        
         if t.type == 'STRING':
             self.advance()
             return Literal(t.value, 'string')
+        
         if t.type == 'ID':
             tok = self.advance()
             return VarRef(tok.value, line=tok.line)
+        
         if t.type == 'LPAREN':
             self.advance()
             expr = self.parse_expr()
             self.expect('RPAREN')
             return expr
+        
         raise ParserError(f"Error en línea {t.line}: token inesperado '{t.value}' en expresión")
 
 # -----------------------
@@ -384,14 +410,38 @@ class SemanticAnalyzer:
             left = self.eval_expr(node.left)
             right = self.eval_expr(node.right)
             node._ambito = "local" if self.scopes else "global"
-            if node.op in ('PLUS', 'MINUS', 'LT', 'GT', 'LE', 'GE', 'EQ', 'NEQ'):
+            
+            # Operaciones aritméticas
+            if node.op in ('PLUS', 'MINUS', 'MUL', 'DIV'):
                 if left == right == 'int':
-                    node._tipo = 'int' if node.op in ('PLUS', 'MINUS') else 'bool'
-                    return node._tipo
+                    node._tipo = 'int'
+                    return 'int'
                 if left == right == 'float':
-                    node._tipo = 'float' if node.op in ('PLUS', 'MINUS') else 'bool'
-                    return node._tipo
+                    node._tipo = 'float'
+                    return 'float'
                 self.errors.append(f"Error: operación inválida {left} {node.op} {right}")
+            
+            # Operaciones de comparación (numéricas)
+            elif node.op in ('LT', 'GT', 'LE', 'GE'):
+                if left in ('int', 'float') and right in ('int', 'float'):
+                    node._tipo = 'bool'
+                    return 'bool'
+                self.errors.append(f"Error: operación inválida {left} {node.op} {right}")
+            
+            # Operaciones de igualdad (para cualquier tipo compatible)
+            elif node.op in ('EQ', 'NEQ'):
+                if left == right:  # Mismo tipo
+                    node._tipo = 'bool'
+                    return 'bool'
+                elif (left in ('int', 'float') and right in ('int', 'float')):
+                    # Permitir comparación entre int y float
+                    node._tipo = 'bool'
+                    return 'bool'
+                else:
+                    self.errors.append(f"Error: operación inválida {left} {node.op} {right}")
+            
+            return None
+        
         return None
 
 
