@@ -1,7 +1,6 @@
-# AnalizadorLexico.py 
 import re
 
-# Diccionarios de tokens del lenguaje
+# Language tokens
 keywords = {
     'program': 'PROGRAM',
     'var': 'VAR', 
@@ -43,20 +42,15 @@ delimiters = {
 }
 
 def obtener_tokens(codigo_fuente):
-    """
-    Recibe el código fuente como cadena y devuelve una lista de tokens
-    """
+    
     tokens_encontrados = []
-    lineas = codigo_fuente.strip().split('\n')
+    lineas = codigo_fuente.split('\n')
     linea_num = 0
-
-    # Regex mejorada para capturar strings correctamente
-    token_regex = r'\"[^\"]*\"|\'[^\']*\'|==|!=|<=|>=|[=+\-*/<>;:(){}\[\]]|\d+\.\d+|\d+|\w+'
 
     for linea in lineas:
         linea_num += 1
         pos = 0
-        linea = linea.strip()
+        linea = linea.rstrip()
         
         while pos < len(linea):
             # Saltar espacios en blanco
@@ -64,16 +58,29 @@ def obtener_tokens(codigo_fuente):
                 pos += 1
                 continue
             
-            # Buscar coincidencia con el patrón
+            
+            patterns = [
+                (r'\"[^\"]*\"', 'STRING'),      
+                (r"\'[^\']*\'", 'STRING'),      
+                (r'==|!=|<=|>=', 'OPERATOR'),   
+                (r'[=+\-*/<>(){};:]', 'SYMBOL'), 
+                (r'\d+\.\d+', 'NUM'),           
+                (r'\d+', 'NUM'),                
+                (r'[A-Za-z_][A-Za-z0-9_]*', 'ID') 
+            ]
+            
             match = None
-            for pattern in [r'\"[^\"]*\"', r'\'[^\']*\'', r'==|!=|<=|>=', r'[=+\-*/<>;:(){}\[\]]', r'\d+\.\d+', r'\d+', r'\w+']:
+            token_type = None
+            
+            for pattern, t_type in patterns:
                 regex_match = re.match(pattern, linea[pos:])
                 if regex_match:
                     match = regex_match.group(0)
+                    token_type = t_type
                     break
             
             if not match:
-                # Carácter no reconocido
+                
                 tokens_encontrados.append(('ERROR', linea[pos], linea_num, pos + 1))
                 pos += 1
                 continue
@@ -81,20 +88,21 @@ def obtener_tokens(codigo_fuente):
             token = match
             col = pos + 1
             
-            # Clasificación del token
+            # Token clasification
             if token in keywords:
                 tipo = keywords[token]
             elif token in operators:
                 tipo = operators[token]
             elif token in delimiters:
                 tipo = delimiters[token]
-            elif re.match(r'^\d+\.\d+$', token):
-                tipo = 'NUM'
-            elif re.match(r'^\d+$', token):
-                tipo = 'NUM'  
-            elif re.match(r'^\"[^\"]*\"$', token) or re.match(r"^\'[^\']*\'$", token):
+            elif token_type == 'NUM':
+                if '.' in token:
+                    tipo = 'NUM'
+                else:
+                    tipo = 'NUM'
+            elif token_type == 'STRING':
                 tipo = 'STRING'
-            elif re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', token):
+            elif token_type == 'ID':
                 tipo = 'ID'
             else:
                 tipo = 'ERROR'
@@ -103,4 +111,3 @@ def obtener_tokens(codigo_fuente):
             pos += len(token)
 
     return tokens_encontrados
-
