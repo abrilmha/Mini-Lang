@@ -90,3 +90,39 @@ The compiler evolved through three main iterations:
 - GUI interface
 - Automated testing suite
 - End-to-end compilation pipeline
+
+## Reproducibility Appendix 
+
+Exact commands to reproduce results (ready to paste):
+
+### Clone repository
+```bash 
+git clone https://github.com/abrilmha/Mini-Lang
+cd Mini-Lang
+
+# Checkout stable release
+git checkout tags/v1.0
+
+# Run any test program
+python run.py tests/arithmethic.src
+
+# Run entire test suite manually
+for f in tests/*.src; do
+    echo "Running $f"
+    python run.py "$f"
+done
+```
+
+Environment
+
+OS: Windows 10 / macOS / Linux
+
+Python: 3.11+
+
+No external dependencies
+
+Dataset / Inputs
+
+All test programs are located in:
+
+Mini-Lang/src/tests/
